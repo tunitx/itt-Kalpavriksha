@@ -1,0 +1,19 @@
+# Compiled object files
+*.o
+
+# Compiled binary files
+*.out
+*.exe
+
+# Debug files
+*.dSYM/
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*.old
+
+# VS Code specific files
+.vscode/
