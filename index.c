@@ -2,7 +2,7 @@
 #include <string.h>
 
 int od_top = -1, op_top = -1;
-int operands_st[200], operators_st[100];
+int operands_st[1000], operators_st[1000];
 
 int isOperand(char ch) {
     return (ch >= '0' && ch <= '9');
@@ -87,7 +87,7 @@ int parse_expression(char expression[]) {
 }
 
 int main() {
-    char expression[200];
+    char expression[2000];
     printf("Enter the expression: ");
     fgets(expression, sizeof(expression), stdin);
 
