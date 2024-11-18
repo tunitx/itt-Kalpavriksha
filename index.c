@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 int od_top = -1, op_top = -1;
 int operands_st[1000], operators_st[1000];
@@ -46,22 +47,24 @@ int precedence(char op1, char op2) {
 int parse_expression(char expression[]) {
     int i = 0;
     while (i < strlen(expression)) {
-        if (expression[i] == ' ') {
+        if (isspace(expression[i])) {
             i++;
             continue;
         }
 
-        if (isOperand(expression[i])) {
+        if (isOperand(expression[i]) || (expression[i] == '-' && (i == 0 || isOperator(expression[i - 1]) || isspace(expression[i - 1])))) {
             int num = 0;
+            int sign = 1;
+            if (expression[i] == '-') {
+                sign = -1;
+                i++;
+            }
             while (i < strlen(expression) && isOperand(expression[i])) {
                 num = num * 10 + (expression[i] - '0');
                 i++;
             }
-            operands_st[++od_top] = num;
+            operands_st[++od_top] = num * sign;
         } else if (isOperator(expression[i])) {
-            if (i + 1 == strlen(expression) || !isOperand(expression[i + 1])) {
-                return -1;
-            }
             while (op_top != -1 && precedence(expression[i], operators_st[op_top]) <= 0) {
                 int result = evaluate();
                 if (result == -2) {
