@@ -2,116 +2,193 @@
 #include <string.h>
 #include <ctype.h>
 
-int od_top = -1, op_top = -1;
-int operands_st[1000], operators_st[1000];
+#define MAX 300
 
-int isOperand(char ch) {
-    return (ch >= '0' && ch <= '9');
+char opStack[MAX];
+int opTop = -1;
+
+int numStack[MAX];
+int numTop = -1;
+
+void pushOp(char op) {
+    opStack[++opTop] = op;
 }
 
-int isOperator(char ch) {
-    return (ch == '+' || ch == '-' || ch == '*' || ch == '/');
+char popOp() {
+    return opStack[opTop--];
 }
 
-int evaluate() {
-    int op2 = operands_st[od_top--];
-    int op1 = operands_st[od_top--];
-    char op = operators_st[op_top--];
+void pushNum(int val) {
+    numStack[++numTop] = val;
+}
 
-    switch(op) {
-        case '+': return op1 + op2;
-        case '-': return op1 - op2;
-        case '*': return op1 * op2;
-        case '/': if(op2 == 0) return -2; return op1 / op2;
-    }
+int popNum() {
+    return numStack[numTop--];
+}
+
+int opPriority(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
     return 0;
 }
 
-int precedence(char op1, char op2) {
-    int precedence[256] = {0}; 
-    precedence['+'] = 1;
-    precedence['-'] = 1;
-    precedence['*'] = 2;
-    precedence['/'] = 2;
-
-    if (precedence[(unsigned char)op1] == 0 || precedence[(unsigned char)op2] == 0) {
-        return -1; 
-    }
-
-    if (precedence[(unsigned char)op1] == precedence[(unsigned char)op2]) {
-        return 0;
-    }
-    return (precedence[(unsigned char)op1] > precedence[(unsigned char)op2]) ? 1 : -1;
+int isMathOp(char ch) {
+    return (ch == '+' || ch == '-' || ch == '*' || ch == '/');
 }
 
-int parse_expression(char expression[]) {
-    int i = 0;
-    while (i < strlen(expression)) {
-        if (isspace(expression[i])) {
-            i++;
+int convertToPostfix(char infix[], char postfix[]) {
+    int index = 0, postIndex = 0;
+    int expectNum = 1;
+
+    while (infix[index] != '\0') {
+        if (infix[index] == ' ') {
+            index++;
             continue;
         }
 
-        if (isOperand(expression[i]) || (expression[i] == '-' && (i == 0 || isOperator(expression[i - 1]) || isspace(expression[i - 1])))) {
-            int num = 0;
+        if (isdigit(infix[index]) || (infix[index] == '-' && isdigit(infix[index + 1]) && expectNum)) {
+            if (!expectNum) return -1;
+
             int sign = 1;
-            if (expression[i] == '-') {
+            if (infix[index] == '-') {
                 sign = -1;
-                i++;
+                index++;
             }
-            while (i < strlen(expression) && isOperand(expression[i])) {
-                num = num * 10 + (expression[i] - '0');
-                i++;
+
+            int value = 0;
+            while (isdigit(infix[index])) {
+                value = value * 10 + (infix[index++] - '0');
             }
-            operands_st[++od_top] = num * sign;
-        } else if (isOperator(expression[i])) {
-            while (op_top != -1 && precedence(expression[i], operators_st[op_top]) <= 0) {
-                int result = evaluate();
-                if (result == -2) {
-                    return -2;
-                }
-                operands_st[++od_top] = result;
+            value *= sign;
+
+            if (value < 0) {
+                postfix[postIndex++] = '-';
+                value = -value;
             }
-            operators_st[++op_top] = expression[i];
-            i++;
+
+            char temp[20];
+            int len = 0;
+            do {
+                temp[len++] = (value % 10) + '0';
+                value /= 10;
+            } while (value > 0);
+
+            for (int k = len - 1; k >= 0; k--) {
+                postfix[postIndex++] = temp[k];
+            }
+            postfix[postIndex++] = ' ';
+
+            expectNum = 0;
+        } else if (isMathOp(infix[index])) {
+            if (expectNum) return -1;
+
+            while (opTop != -1 && opPriority(opStack[opTop]) >= opPriority(infix[index])) {
+                postfix[postIndex++] = popOp();
+                postfix[postIndex++] = ' ';
+            }
+
+            pushOp(infix[index]);
+            index++;
+            expectNum = 1;
         } else {
             return -1;
         }
     }
 
-    while (op_top != -1) {
-        int result = evaluate();
-        if (result == -2) {
-            return -2;
-        }
-        operands_st[++od_top] = result;
+    if (expectNum) return -1;
+
+    while (opTop != -1) {
+        postfix[postIndex++] = popOp();
+        postfix[postIndex++] = ' ';
     }
+    postfix[postIndex] = '\0';
     return 0;
 }
 
-int main() {
-    char expression[2000];
-    printf("Enter the expression: ");
-    fgets(expression, sizeof(expression), stdin);
+int calculatePostfix(char postfix[], int *hasError) {
+    int index = 0;
 
-    size_t len = strlen(expression);
-    if (len > 0 && expression[len - 1] == '\n') {
-        expression[len - 1] = '\0';
+    while (postfix[index] != '\0') {
+        if (isdigit(postfix[index]) || (postfix[index] == '-' && isdigit(postfix[index + 1]))) {
+            int value = 0, sign = 1;
+
+            if (postfix[index] == '-') {
+                sign = -1;
+                index++;
+            }
+
+            while (isdigit(postfix[index])) {
+                value = value * 10 + (postfix[index++] - '0');
+            }
+            pushNum(sign * value);
+        } else if (isMathOp(postfix[index])) {
+            if (numTop < 1) {
+                *hasError = 1;
+                return 0;
+            }
+
+            int right = popNum();
+            int left = popNum();
+
+            if (postfix[index] == '/' && right == 0) {
+                *hasError = 2;
+                return 0;
+            }
+
+            switch (postfix[index]) {
+                case '+': pushNum(left + right); break;
+                case '-': pushNum(left - right); break;
+                case '*': pushNum(left * right); break;
+                case '/': pushNum(left / right); break;
+            }
+            index++;
+        } else {
+            index++;
+        }
     }
 
-    if (strlen(expression) == 0) {
-        printf("You entered an empty string\n");
+    return popNum();
+}
+
+int main() {
+    char input[MAX];
+    char output[MAX];
+
+    printf("Enter an expression: ");
+    if (fgets(input, MAX, stdin)) {
+        input[strcspn(input, "\n")] = '\0';
+    }
+
+    int isEmpty = 1;
+    for (int i = 0; input[i] != '\0'; i++) {
+        if (input[i] != ' ') {
+            isEmpty = 0;
+            break;
+        }
+    }
+
+    if (isEmpty) {
+        printf("Error: Expression cannot be blank\n");
         return 0;
     }
 
-    int res = parse_expression(expression);
-
-    if (res == -1) {
+    int status = convertToPostfix(input, output);
+    if (status == -1) {
         printf("Error: Invalid expression\n");
-    } else if (res == -2) {
+        return 0;
+    }
+
+    printf("Postfix Expression: %s\n", output);
+
+    int errorFlag = 0;
+    int result = calculatePostfix(output, &errorFlag);
+
+    if (errorFlag == 1) {
+        printf("Error: Invalid postfix expression\n");
+    } else if (errorFlag == 2) {
         printf("Error: Division by zero\n");
     } else {
-        printf("Result is: %d\n", operands_st[od_top]);
+        printf("Result: %d\n", result);
     }
 
     return 0;
