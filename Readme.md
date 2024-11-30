@@ -1,2 +1,2 @@
-In Time Tec Kalpvariksha 2024 - 2025
+In Time Tec Kalpavriksha 2024 - 2025
 
