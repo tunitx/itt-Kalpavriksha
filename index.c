@@ -1,194 +1,185 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#define MAX 300
+struct Record {
+    int userID;
+    char userName[50];
+    int userAge;
+};
 
-char opStack[MAX];
-int opTop = -1;
-
-int numStack[MAX];
-int numTop = -1;
-
-void pushOp(char op) {
-    opStack[++opTop] = op;
+void ensureFileExists() {
+    FILE *dataFile = fopen("user_records.txt", "a");
+    if (dataFile) fclose(dataFile);
 }
 
-char popOp() {
-    return opStack[opTop--];
+void addRecord() {
+    struct Record record;
+    FILE *dataFile = fopen("user_records.txt", "a");
+
+    if (!dataFile) {
+        printf("Error: Could not access the file.\n");
+        return;
+    }
+
+    printf("Enter ID: ");
+    scanf("%d", &record.userID);
+    getchar();
+    printf("Enter Name: ");
+    fgets(record.userName, sizeof(record.userName), stdin);
+    record.userName[strcspn(record.userName, "\n")] = '\0';
+    printf("Enter Age: ");
+    scanf("%d", &record.userAge);
+
+    fprintf(dataFile, "%d,%s,%d\n", record.userID, record.userName, record.userAge);
+    fclose(dataFile);
+
+    printf("Record added successfully.\n");
 }
 
-void pushNum(int val) {
-    numStack[++numTop] = val;
+void viewRecords() {
+    FILE *dataFile = fopen("user_records.txt", "r");
+    if (!dataFile) {
+        printf("Error: Could not access the file.\n");
+        return;
+    }
+
+    char buffer[500];
+    printf("\nExisting Records:\n");
+    while (fgets(buffer, sizeof(buffer), dataFile)) {
+        printf("%s", buffer);
+    }
+
+    fclose(dataFile);
 }
 
-int popNum() {
-    return numStack[numTop--];
-}
+void modifyRecord() {
+    int lookupID, isFound = 0;
+    struct Record record;
 
-int opPriority(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/') return 2;
-    return 0;
-}
+    printf("Enter the ID to modify: ");
+    scanf("%d", &lookupID);
+    getchar();
 
-int isMathOp(char ch) {
-    return (ch == '+' || ch == '-' || ch == '*' || ch == '/');
-}
+    FILE *dataFile = fopen("user_records.txt", "r");
+    if (!dataFile) {
+        printf("Error: Unable to open file.\n");
+        return;
+    }
 
-int convertToPostfix(char infix[], char postfix[]) {
-    int index = 0, postIndex = 0;
-    int expectNum = 1;
+    FILE *tempFile = fopen("temp_records.txt", "w");
+    if (!tempFile) {
+        printf("Error: Unable to create temp file.\n");
+        fclose(dataFile);
+        return;
+    }
 
-    while (infix[index] != '\0') {
-        if (infix[index] == ' ') {
-            index++;
-            continue;
+    char buffer[500];
+    while (fgets(buffer, sizeof(buffer), dataFile)) {
+        sscanf(buffer, "%d,%49[^,],%d", &record.userID, record.userName, &record.userAge);
+        if (record.userID == lookupID) {
+            isFound = 1;
+            printf("Enter new Name: ");
+            fgets(record.userName, sizeof(record.userName), stdin);
+            record.userName[strcspn(record.userName, "\n")] = '\0';
+
+            printf("Enter new Age: ");
+            scanf("%d", &record.userAge);
         }
 
-        if (isdigit(infix[index]) || (infix[index] == '-' && isdigit(infix[index + 1]) && expectNum)) {
-            if (!expectNum) return -1;
+        fprintf(tempFile, "%d,%s,%d\n", record.userID, record.userName, record.userAge);
+    }
 
-            int sign = 1;
-            if (infix[index] == '-') {
-                sign = -1;
-                index++;
-            }
+    fclose(dataFile);
+    fclose(tempFile);
 
-            int value = 0;
-            while (isdigit(infix[index])) {
-                value = value * 10 + (infix[index++] - '0');
-            }
-            value *= sign;
+    if (isFound) {
+        remove("user_records.txt");
+        rename("temp_records.txt", "user_records.txt");
+        printf("Record updated successfully.\n");
+    } else {
+        remove("temp_records.txt");
+        printf("No matching ID found.\n");
+    }
+}
 
-            if (value < 0) {
-                postfix[postIndex++] = '-';
-                value = -value;
-            }
+void deleteRecord() {
+    int lookupID, isFound = 0;
+    struct Record record;
 
-            char temp[20];
-            int len = 0;
-            do {
-                temp[len++] = (value % 10) + '0';
-                value /= 10;
-            } while (value > 0);
+    printf("Enter the ID to delete: ");
+    scanf("%d", &lookupID);
+    FILE *dataFile = fopen("user_records.txt", "r");
+    if (!dataFile) {
+        printf("Error: Unable to access file.\n");
+        return;
+    }
 
-            for (int k = len - 1; k >= 0; k--) {
-                postfix[postIndex++] = temp[k];
-            }
-            postfix[postIndex++] = ' ';
+    FILE *tempFile = fopen("temp_records.txt", "w");
+    if (!tempFile) {
+        printf("Error: Unable to create temp file.\n");
+        fclose(dataFile);
+        return;
+    }
 
-            expectNum = 0;
-        } else if (isMathOp(infix[index])) {
-            if (expectNum) return -1;
-
-            while (opTop != -1 && opPriority(opStack[opTop]) >= opPriority(infix[index])) {
-                postfix[postIndex++] = popOp();
-                postfix[postIndex++] = ' ';
-            }
-
-            pushOp(infix[index]);
-            index++;
-            expectNum = 1;
+    char buffer[500];
+    while (fgets(buffer, sizeof(buffer), dataFile)) {
+        sscanf(buffer, "%d,%49[^,],%d", &record.userID, record.userName, &record.userAge);
+        if (record.userID != lookupID) {
+            fprintf(tempFile, "%d,%s,%d\n", record.userID, record.userName, record.userAge);
         } else {
-            return -1;
+            isFound = 1;
         }
     }
 
-    if (expectNum) return -1;
+    fclose(dataFile);
+    fclose(tempFile);
 
-    while (opTop != -1) {
-        postfix[postIndex++] = popOp();
-        postfix[postIndex++] = ' ';
+    if (isFound) {
+        remove("user_records.txt");
+        rename("temp_records.txt", "user_records.txt");
+        printf("Record deleted successfully.\n");
+    } else {
+        remove("temp_records.txt");
+        printf("No matching ID found.\n");
     }
-    postfix[postIndex] = '\0';
-    return 0;
-}
-
-int calculatePostfix(char postfix[], int *hasError) {
-    int index = 0;
-
-    while (postfix[index] != '\0') {
-        if (isdigit(postfix[index]) || (postfix[index] == '-' && isdigit(postfix[index + 1]))) {
-            int value = 0, sign = 1;
-
-            if (postfix[index] == '-') {
-                sign = -1;
-                index++;
-            }
-
-            while (isdigit(postfix[index])) {
-                value = value * 10 + (postfix[index++] - '0');
-            }
-            pushNum(sign * value);
-        } else if (isMathOp(postfix[index])) {
-            if (numTop < 1) {
-                *hasError = 1;
-                return 0;
-            }
-
-            int right = popNum();
-            int left = popNum();
-
-            if (postfix[index] == '/' && right == 0) {
-                *hasError = 2;
-                return 0;
-            }
-
-            switch (postfix[index]) {
-                case '+': pushNum(left + right); break;
-                case '-': pushNum(left - right); break;
-                case '*': pushNum(left * right); break;
-                case '/': pushNum(left / right); break;
-            }
-            index++;
-        } else {
-            index++;
-        }
-    }
-
-    return popNum();
 }
 
 int main() {
-    char input[MAX];
-    char output[MAX];
+    int option;
 
-    printf("Enter an expression: ");
-    if (fgets(input, MAX, stdin)) {
-        input[strcspn(input, "\n")] = '\0';
-    }
+    ensureFileExists();
 
-    int isEmpty = 1;
-    for (int i = 0; input[i] != '\0'; i++) {
-        if (input[i] != ' ') {
-            isEmpty = 0;
-            break;
+    while (1) {
+        printf("\nMenu:\n");
+        printf("1. Add Record\n");
+        printf("2. View Records\n");
+        printf("3. Modify Record\n");
+        printf("4. Delete Record\n");
+        printf("5. Exit\n");
+        printf("Choose an option: ");
+        scanf("%d", &option);
+        getchar();
+
+        switch (option) {
+            case 1:
+                addRecord();
+                break;
+            case 2:
+                viewRecords();
+                break;
+            case 3:
+                modifyRecord();
+                break;
+            case 4:
+                deleteRecord();
+                break;
+            case 5:
+                printf("Exiting program.\n");
+                exit(0);
+            default:
+                printf("Invalid option. Please choose a valid option.\n");
         }
-    }
-
-    if (isEmpty) {
-        printf("Error: Expression cannot be blank\n");
-        return 0;
-    }
-
-    int status = convertToPostfix(input, output);
-    if (status == -1) {
-        printf("Error: Invalid expression\n");
-        return 0;
-    }
-
-    printf("Postfix Expression: %s\n", output);
-
-    int errorFlag = 0;
-    int result = calculatePostfix(output, &errorFlag);
-
-    if (errorFlag == 1) {
-        printf("Error: Invalid postfix expression\n");
-    } else if (errorFlag == 2) {
-        printf("Error: Division by zero\n");
-    } else {
-        printf("Result: %d\n", result);
     }
 
     return 0;
