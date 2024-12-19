@@ -2,37 +2,41 @@
 #include <string.h>
 #include <ctype.h>
 
-#define MAX 300
+//? changed the max to maxLength.
 
-char opStack[MAX];
-int opTop = -1;
+#define maxLength 300
 
-int numStack[MAX];
-int numTop = -1;
+//? improved naming of operator stack, number stack, their push & pop operations & their tops.
 
-void pushOp(char op) {
-    opStack[++opTop] = op;
+char operatorStack[maxLength];
+int operatorStackTop = -1;
+
+int numberStack[maxLength];
+int numStackTop = -1;
+
+void pushOperator(char op) {
+    operatorStack[++operatorStackTop] = op;
 }
 
-char popOp() {
-    return opStack[opTop--];
+char popOperator() {
+    return operatorStack[operatorStackTop--];
 }
 
-void pushNum(int val) {
-    numStack[++numTop] = val;
+void pushNumber(int val) {
+    numberStack[++numStackTop] = val;
 }
 
-int popNum() {
-    return numStack[numTop--];
+int popNumber() {
+    return numberStack[numStackTop--];
 }
 
-int opPriority(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/') return 2;
-    return 0;
+//? changed the multiple return statements to single ternary op based condition
+
+int getOperatorPrecedence(char op) {
+ return (op == '+' || op == '-') ? 1 : (op == '*' || op == '/') ? 2 : 0;
 }
 
-int isMathOp(char ch) {
+int isMathOperator(char ch) {
     return (ch == '+' || ch == '-' || ch == '*' || ch == '/');
 }
 
@@ -79,15 +83,15 @@ int convertToPostfix(char infix[], char postfix[]) {
             postfix[postIndex++] = ' ';
 
             expectNum = 0;
-        } else if (isMathOp(infix[index])) {
+        } else if (isMathOperator(infix[index])) {
             if (expectNum) return -1;
 
-            while (opTop != -1 && opPriority(opStack[opTop]) >= opPriority(infix[index])) {
-                postfix[postIndex++] = popOp();
+            while (operatorStackTop != -1 && getOperatorPrecedence(operatorStack[operatorStackTop]) >= getOperatorPrecedence(infix[index])) {
+                postfix[postIndex++] = popOperator();
                 postfix[postIndex++] = ' ';
             }
 
-            pushOp(infix[index]);
+            pushOperator(infix[index]);
             index++;
             expectNum = 1;
         } else {
@@ -97,8 +101,8 @@ int convertToPostfix(char infix[], char postfix[]) {
 
     if (expectNum) return -1;
 
-    while (opTop != -1) {
-        postfix[postIndex++] = popOp();
+    while (operatorStackTop != -1) {
+        postfix[postIndex++] = popOperator();
         postfix[postIndex++] = ' ';
     }
     postfix[postIndex] = '\0';
@@ -120,15 +124,15 @@ int calculatePostfix(char postfix[], int *hasError) {
             while (isdigit(postfix[index])) {
                 value = value * 10 + (postfix[index++] - '0');
             }
-            pushNum(sign * value);
-        } else if (isMathOp(postfix[index])) {
-            if (numTop < 1) {
+            pushNumber(sign * value);
+        } else if (isMathOperator(postfix[index])) {
+            if (numStackTop < 1) {
                 *hasError = 1;
                 return 0;
             }
 
-            int right = popNum();
-            int left = popNum();
+            int right = popNumber();
+            int left = popNumber();
 
             if (postfix[index] == '/' && right == 0) {
                 *hasError = 2;
@@ -136,10 +140,10 @@ int calculatePostfix(char postfix[], int *hasError) {
             }
 
             switch (postfix[index]) {
-                case '+': pushNum(left + right); break;
-                case '-': pushNum(left - right); break;
-                case '*': pushNum(left * right); break;
-                case '/': pushNum(left / right); break;
+                case '+': pushNumber(left + right); break;
+                case '-': pushNumber(left - right); break;
+                case '*': pushNumber(left * right); break;
+                case '/': pushNumber(left / right); break;
             }
             index++;
         } else {
@@ -147,15 +151,15 @@ int calculatePostfix(char postfix[], int *hasError) {
         }
     }
 
-    return popNum();
+    return popNumber();
 }
 
 int main() {
-    char input[MAX];
-    char output[MAX];
+    char input[maxLength];
+    char output[maxLength];
 
     printf("Enter an expression: ");
-    if (fgets(input, MAX, stdin)) {
+    if (fgets(input, maxLength, stdin)) {
         input[strcspn(input, "\n")] = '\0';
     }
 
@@ -178,7 +182,7 @@ int main() {
         return 0;
     }
 
-    printf("Postfix Expression: %s\n", output);
+    //? removed postfix exp printing line
 
     int errorFlag = 0;
     int result = calculatePostfix(output, &errorFlag);
