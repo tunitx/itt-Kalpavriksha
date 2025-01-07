@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<string.h>
 
-int isVowel(char c){
+int is_vowel(char c){
     return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') ? 1 : 0;
 }
 
@@ -29,7 +29,7 @@ int main(){
     for(int i =0; i<rows; i++){
         for(int j =0; j<cols; j++){
             printf("%s ", mat[i][j]);
-            if(isVowel(mat[i][j][0])){
+            if(is_vowel(mat[i][j][0])){
                 words_with_vowel++;
             }
             int curr_len = strlen(mat[i][j]);
