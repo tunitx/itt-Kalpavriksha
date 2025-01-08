@@ -11,9 +11,9 @@ int isVowel(char c){
 
 int main(){
     int rows, cols;
-    printf("Enter the rows and columns: ");
+    printf("Enter the rows and columns within the range 1<=rows<=10 and 1<=cols<=101: ");
     while(scanf("%d %d", &rows, &cols) != 2 || rows < MIN_ROWS || cols < MIN_COLS || rows > MAX_ROWS || cols > MAX_COLS){
-        printf("Invalid input, please follow 1<=rows<=10 and 1<=cols<=101: ");
+        printf("Invalid input, please follow range 1<=rows<=10 and 1<=cols<=101: ");
         while(getchar() != '\n');
     }
     
