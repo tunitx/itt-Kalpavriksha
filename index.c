@@ -1,15 +1,19 @@
 #include<stdio.h>
 #include<string.h>
+#define MAX_ROWS 10
+#define MAX_COLS 101
+#define MIN_ROWS 1
+#define MIN_COLS 1
 
-int is_vowel(char c){
+int isVowel(char c){
     return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') ? 1 : 0;
 }
 
 int main(){
     int rows, cols;
-    printf("enter the rows and columns: ");
-    while(scanf("%d %d", &rows, &cols) != 2){
-        printf("Invalid input. Please enter again: ");
+    printf("Enter the rows and columns: ");
+    while(scanf("%d %d", &rows, &cols) != 2 || rows < MIN_ROWS || cols < MIN_COLS || rows > MAX_ROWS || cols > MAX_COLS){
+        printf("Invalid input, please follow 1<=rows<=10 and 1<=cols<=101: ");
         while(getchar() != '\n');
     }
     
@@ -29,7 +33,7 @@ int main(){
     for(int i =0; i<rows; i++){
         for(int j =0; j<cols; j++){
             printf("%s ", mat[i][j]);
-            if(is_vowel(mat[i][j][0])){
+            if(isVowel(mat[i][j][0])){
                 words_with_vowel++;
             }
             int curr_len = strlen(mat[i][j]);
