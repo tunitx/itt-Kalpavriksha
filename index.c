@@ -8,11 +8,13 @@ typedef struct{
 } HashEntry;
 
 int compare(char *hash_name, char * name){
-    int i =0;
-    while(hash_name[i] != '\0' && name[i] != '\0'){
-        if(hash_name[i] != name[i]) return 0;
+    int i =0, j =0;
+    while(hash_name[i] != '\0' && name[j] != '\0'){
+        if(hash_name[i] != name[j]) return 0;
         i++;
+        j++;
     }
+    if(hash_name[i]!='\0' || name[j] != '\0') return 0;
     return 1;
 }
 
@@ -84,6 +86,16 @@ int main(){
     if(!duplicate){
         printf("No duplicates found\n");
     }
+
+    for(int i =0; i<rows; i++){
+        for(int j =0; j<cols; j++){
+            free(mat[i][j]);
+        }
+        free(mat[i]);
+    }
+
+    free(mat);
+    free(hashTable);
 
     return 0;
 }
