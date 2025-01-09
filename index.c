@@ -1,55 +1,89 @@
-#include<stdio.h>
-#include<string.h>
-#define MAX_ROWS 10
-#define MAX_COLS 101
-#define MIN_ROWS 1
-#define MIN_COLS 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-int isVowel(char c){
-    return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') ? 1 : 0;
+typedef struct{
+    char name[51];
+    int count;
+} HashEntry;
+
+int compare(char *hash_name, char * name){
+    int i =0;
+    while(hash_name[i] != '\0' && name[i] != '\0'){
+        if(hash_name[i] != name[i]) return 0;
+        i++;
+    }
+    return 1;
+}
+
+int helper(HashEntry *hashTable, int curr_size, char *name){
+    for(int i =0; i<curr_size; i++){
+        if(compare(hashTable[i].name, name)) return i;
+    }
+    return -1;
+}
+
+void copy_string(char *hash_name, char *name){
+    int i =0;
+    while(name[i] != '\0'){
+        hash_name[i] = name[i];
+        i++;
+    }
+    hash_name[i] = '\0';
 }
 
 int main(){
     int rows, cols;
-    printf("Enter the rows and columns within the range 1<=rows<=10 and 1<=cols<=101: ");
-    while(scanf("%d %d", &rows, &cols) != 2 || rows < MIN_ROWS || cols < MIN_COLS || rows > MAX_ROWS || cols > MAX_COLS){
-        printf("Invalid input, please follow range 1<=rows<=10 and 1<=cols<=101: ");
-        while(getchar() != '\n');
+
+    printf("Enter the rows and columns: ");
+    scanf("%d %d", &rows, &cols);
+
+    char ***mat = (char ***)malloc(rows * sizeof(char **));
+    for(int i =0; i<rows; i++){
+        mat[i] = (char **)malloc(cols * sizeof(char *));
+        for(int j =0; j<cols; j++){
+            mat[i][j] = (char *)malloc(51 * sizeof(char));
+        }
     }
-    
-    char mat[rows][cols][51];
 
     for(int i =0; i<rows; i++){
         for(int j =0; j<cols; j++){
-            printf("Enter the element at (%d %d) : ", i, j);
+            printf("Enter the string at (%d %d) : ", i, j);
             scanf("%s", mat[i][j]);
         }
     }
 
     printf("\n");
 
-    int words_with_vowel = 0, max_len = 0, cord_x, cord_y;
+    HashEntry *hashTable = (HashEntry *)malloc(1000 * sizeof(HashEntry));
+    int curr_size = 0;
 
     for(int i =0; i<rows; i++){
         for(int j =0; j<cols; j++){
-            printf("%s ", mat[i][j]);
-            if(isVowel(mat[i][j][0])){
-                words_with_vowel++;
-            }
-            int curr_len = strlen(mat[i][j]);
-            if(curr_len > max_len){
-                max_len = curr_len;
-                cord_x = i;
-                cord_y = j;
-            }
+           int index = helper(hashTable, curr_size, mat[i][j]);
+           if(index == -1){
+           copy_string(hashTable[curr_size].name, mat[i][j]);
+            hashTable[curr_size].count = 1;
+            curr_size++;
+           }
+           else{
+            hashTable[index].count++;
+           }
         }
-        printf("\n");
     }
 
-    printf("Number of words starting with a vowel: %d\n", words_with_vowel);
-    printf("Length of the longest word: %s\n", mat[cord_x][cord_y]);
+    int duplicate = 0;
+
+    for(int i =0; i<curr_size; i++){
+        if(hashTable[i].count > 1){
+            printf("%s %d\n", hashTable[i].name, hashTable[i].count);
+            duplicate = 1;
+        }
+    }
+
+    if(!duplicate){
+        printf("No duplicates found\n");
+    }
 
     return 0;
-
-
 }
