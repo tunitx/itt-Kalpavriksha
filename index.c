@@ -1,38 +1,57 @@
 // Online C compiler to run C program online
 #include <stdio.h>
-#include <string.h>
 #define max_size 101
-
-int helper(char *arr,int i, char *sub){
+int helper(char *temp, int i, char * s1){
     int j =0;
-    while(arr[i]!= '\0' && sub[j]!='\0'){
-        if(arr[i]!=sub[j]) return 0;
-        i++;
+    while(temp[i]!= '\0' && s1[j]!= '\0'){
+        if(temp[i]!=s1[j]) return 0;
         j++;
+        i++;
     }
-    return (sub[j] == '\0');
-    
+    return (s1[j] == '\0');
 }
-
 int main() {
-   char arr[max_size];
-   char sub[max_size];
-   printf("enter the string : ");
-   fgets(arr, max_size, stdin);
-   arr[strcspn(arr, "\n")] = '\0';
-   
-   printf("enter the substring: ");
-   scanf("%s", sub);
-   
-   int ans =0, not_found = 0;
-   for(int i =0; arr[i]!='\0'; i++){
-       if(helper(arr, i , sub)){
-           not_found = 1;
-           ans = i;
-           break;
-       }
-   }
-   if(not_found == 0) printf("not found");
-   else  printf("the ans is : %d", ans);
+    // Write C code here
+    char s1[max_size];
+    char s2[max_size];
+    
+    printf("enter the s1: ");
+    scanf("%s", s1);
+    
+    getchar();
+    
+    printf("enter the s2: ");
+    scanf("%s", s2);
+    getchar();
+    
+    int len1 =0, len2 =0;
+    for(int i =0; s1[i]!='\0'; i++){
+        len1 ++;
+    }
+    for(int i =0; s2[i]!='\0'; i++){
+        len2 ++;
+    }
+    
+    if(len1!=len2){
+        printf("false");
+        return 0;
+    }
+    char temp [len1 + len2 + 1];
+    int j =0;
+    for(int i =0; s2[i]!='\0'; i++){
+        temp[j++] = s2[i]; 
+    }
+    for(int i =0; s2[i]!='\0'; i++){
+        temp[j++] = s2[i];
+    }
+    temp[j] = '\0';
+    
+    for(int i =0; temp[i]!='\0'; i++){
+        if(helper(temp, i, s1)){
+            printf("true");
+            return 0;
+        } 
+    }
+    printf("false");
     return 0;
 }
