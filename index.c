@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define MAX_LEN  51
 
 typedef struct{
-    char name[51];
+    char name[MAX_LEN];
     int count;
-} HashEntry;
+} hash_entry;
 
 int compare(char *hash_name, char * name){
     int i =0, j =0;
@@ -18,9 +19,9 @@ int compare(char *hash_name, char * name){
     return 1;
 }
 
-int helper(HashEntry *hashTable, int curr_size, char *name){
+int helper(hash_entry *hash_table, int curr_size, char *name){
     for(int i =0; i<curr_size; i++){
-        if(compare(hashTable[i].name, name)) return i;
+        if(compare(hash_table[i].name, name)) return i;
     }
     return -1;
 }
@@ -57,19 +58,19 @@ int main(){
 
     printf("\n");
 
-    HashEntry *hashTable = (HashEntry *)malloc(1000 * sizeof(HashEntry));
+    hash_entry *hash_table = (hash_entry *)malloc((rows * cols) * sizeof(hash_entry));
     int curr_size = 0;
 
     for(int i =0; i<rows; i++){
         for(int j =0; j<cols; j++){
-           int index = helper(hashTable, curr_size, mat[i][j]);
+           int index = helper(hash_table, curr_size, mat[i][j]);
            if(index == -1){
-           copy_string(hashTable[curr_size].name, mat[i][j]);
-            hashTable[curr_size].count = 1;
+           copy_string(hash_table[curr_size].name, mat[i][j]);
+            hash_table[curr_size].count = 1;
             curr_size++;
            }
            else{
-            hashTable[index].count++;
+            hash_table[index].count++;
            }
         }
     }
@@ -77,8 +78,8 @@ int main(){
     int duplicate = 0;
 
     for(int i =0; i<curr_size; i++){
-        if(hashTable[i].count > 1){
-            printf("%s %d\n", hashTable[i].name, hashTable[i].count);
+        if(hash_table[i].count > 1){
+            printf("%s %d\n", hash_table[i].name, hash_table[i].count);
             duplicate = 1;
         }
     }
@@ -95,7 +96,7 @@ int main(){
     }
 
     free(mat);
-    free(hashTable);
+    free(hash_table);
 
     return 0;
 }
