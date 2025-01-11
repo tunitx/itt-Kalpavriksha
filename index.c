@@ -1,42 +1,47 @@
-// Online C compiler to run C program online
-#include <stdio.h>
+#include<stdio.h>
 #define max_size 101
 
-int check(int start, int end, char * arr){
-    while(start < end){
-        if(arr[start]!=arr[end]) return 0;
-        start ++;
-        end--;
-    }
-    return 1;
+int is_digit(char c){
+    return c >= '0' && c<='9';
 }
 
-int main() {
-    // Write C code here
+int helper(char * temp, int size){
+    int i =0, num =0;
+    if(temp[i] == '0' && size>1)return 0;
+    while(temp[i]!='\0'){
+        if(!is_digit(temp[i]))return 0;
+        num = num*10 + temp[i] - '0';
+        if(num > 255) return 0;
+        i++;
+    }
+    return num <=255;
+}
+
+int main(){
     char arr[max_size];
-    printf("enter the string: ");
+    printf("enter the IP: ");
     scanf("%s", arr);
     getchar();
     
-    int max_start = 0, max_len = 0;
-    for(int i =0; arr[i]!='\0'; i++){
-        for(int j = i; arr[j]!='\0'; j++){
-            int res = check(i, j, arr);
-            if(res){
-                if(j-i+1 > max_len){
-                    max_len = j-i+1;
-                    max_start = i;
-                }
-            }
+    int i =0, invalid = 0, segment = 0;
+    while(arr[i]!='\0'){
+        char temp[max_size];
+        int k =0;
+        while(arr[i]!='.' && arr[i]!='\0'){
+            temp[k++] = arr[i];
+            i++;
         }
+        temp[k] = '\0';
+        int res = helper(temp, k);
+        if(!res){
+            invalid = 1;
+            break;
+        }
+        segment ++;
+        i++;
     }
+    if(invalid || segment !=4)printf("invalid ip");
+    else printf("valid ip");
     
-    char temp [max_size];
-    for(int i = 0; i<max_len; i++){
-        temp[i] = arr[i+max_start];
-    }
-    temp[max_len] = '\0';
-    printf("the longest pallindromic substring is : %s", temp);
-
     return 0;
 }
