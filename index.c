@@ -2,48 +2,41 @@
 #include <stdio.h>
 #define max_size 101
 
+int check(int start, int end, char * arr){
+    while(start < end){
+        if(arr[start]!=arr[end]) return 0;
+        start ++;
+        end--;
+    }
+    return 1;
+}
+
 int main() {
     // Write C code here
     char arr[max_size];
-    printf("enter the string : ");
+    printf("enter the string: ");
     scanf("%s", arr);
     getchar();
     
-    int size = 0;
-    char ans[max_size];
+    int max_start = 0, max_len = 0;
     for(int i =0; arr[i]!='\0'; i++){
-        char curr_char = arr[i];
-        int j = i, curr_len = 0;
-        
-        while(arr[j] == curr_char && arr[j]!='\0'){
-            j++;
-            curr_len ++;
+        for(int j = i; arr[j]!='\0'; j++){
+            int res = check(i, j, arr);
+            if(res){
+                if(j-i+1 > max_len){
+                    max_len = j-i+1;
+                    max_start = i;
+                }
+            }
         }
-        int temp [max_size];
-        int k =0;
-        while(curr_len > 0){
-            temp[k++] = curr_len%10;
-            curr_len = curr_len/10;
-        }
-        k--;
-        ans[size ++] = curr_char;
-        while(k>=0){
-            ans[size++] = temp[k--] + '0';
-        }
-        // ans[size++] = curr_char;
-        // ans[size++] = curr_len + '0';
-        
-        i = j-1;
     }
-    ans[size] = '\0';
-    int arr_size =0;
-    for(int i =0; arr[i]!='\0'; i++){
-        arr_size ++;
-    }
-    arr_size ++;
     
-    if(size > arr_size)printf("the ans is : %s", arr);
-    else printf("the ans is : %s", ans);
+    char temp [max_size];
+    for(int i = 0; i<max_len; i++){
+        temp[i] = arr[i+max_start];
+    }
+    temp[max_len] = '\0';
+    printf("the longest pallindromic substring is : %s", temp);
 
     return 0;
 }
