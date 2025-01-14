@@ -5,8 +5,8 @@
 #define MIN_ROWS 1
 #define MIN_COLS 1
 
-int isVowel(char c){
-    return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') ? 1 : 0;
+int isVowel(char curr_character){
+    return (curr_character == 'a' || curr_character == 'e' || curr_character == 'i' || curr_character == 'o' || curr_character == 'u' || curr_character == 'A' || curr_character == 'E' || curr_character == 'I' || curr_character == 'O' || curr_character == 'U') ? 1 : 0;
 }
 
 int main(){
