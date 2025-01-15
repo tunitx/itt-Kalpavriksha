@@ -1,42 +1,34 @@
 // Online C compiler to run C program online
 #include <stdio.h>
-#include <stdlib.h>
-
+#define max_size 101
 int main() {
-    int n;
-    printf("enter the size of N*N matrix: ");
-    scanf("%d", &n);
+
+    char str[max_size];
+    char char_to_replace;
     
-    int ** mat = (int **)malloc(n * sizeof(int *));
-    for(int i =0; i<n; i++){
-        mat[i] = (int *)malloc(n*sizeof(int));
+    printf("enter the string; ");
+    fgets(str, max_size, stdin);
+    int end = 0;
+    for(; str[end]!='\n'; end ++){
     }
+    str[end] = '\0';
     
-    printf("enter the elements of the matrix: \n");
-    for(int i =0; i<n; i++){
-        for(int j =0; j<n; j++){
-            scanf("%d", &mat[i][j]);
+    printf("enter the character to replace: ");
+    scanf("%c", &char_to_replace);
+    
+    int char_map[256] = {0};
+    
+    for(int i =0; str[i]!='\0'; i++){
+        if(str[i] == ' ')continue;
+      char_map[str[i]]++;
+    }
+    for(int i =0; str[i]!='\0'; i++){
+        if(char_map[str[i]] == 1){
+            str[i] = char_to_replace;
+            break;
         }
     }
     
-    for(int i =0; i<n; i++){
-        for(int j =i+1; j<n; j++){
-            int temp = mat[i][j];
-            mat[i][j] = mat[j][i];
-            mat[j][i] = temp;
-        }
-    }
-    printf("the transposed matrix is : \n");
-    for(int i =0; i<n; i++){
-        for(int j =0; j<n; j++){
-            printf("%d ", mat[i][j]);
-        }
-        printf("\n");
-    }
-    
-    for(int i =0; i<n; i++){
-        free(mat[i]);
-    }
-    free(mat);
+    printf("the modified string is: %s", str);
     return 0;
 }
