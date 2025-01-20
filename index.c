@@ -12,6 +12,7 @@ int main() {
     for(; str[end]!='\n'; end ++){
     }
     str[end] = '\0';
+
     
     printf("enter the character to replace: ");
     scanf("%c", &char_to_replace);
