@@ -1,92 +1,67 @@
+// Online C compiler to run C program online
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#define max_size 100000
+typedef struct Node{
+    int value;
+    struct Node * next;
+}Node;
 
-typedef struct Node {
-    int data;
-    struct Node *next;
-} Node;
-
-Node *k_alt_rev(Node *head, int k) {
-    Node *curr = head;
-    Node *next = NULL;
-    Node *prev = NULL;
-    int count = 0;
-
-    while (curr != NULL && count < k) {
-        next = curr->next;
-        curr->next = prev;
-        prev = curr;
-        curr = next;
-        count++;
-    }
-
-    if (head != NULL) {
-        head->next = curr;
-    }
-
-    count = 0;
-    while (count < k - 1 && curr != NULL) {
-        curr = curr->next;
-        count++;
-    }
-
-    if (curr != NULL) {
-        curr->next = k_alt_rev(curr->next, k);
-    }
-
-    return prev;
-}
-
-void add_to_ll(Node **head, int data) {
-    Node *curr_node = (Node *)malloc(sizeof(Node));
-    curr_node->data = data;
-    curr_node->next = NULL;
-
-    if (*head == NULL) {
-        *head = curr_node;
-    } else {
-        Node *temp = *head;
-        while (temp->next != NULL) {
-            temp = temp->next;
-        }
-        temp->next = curr_node;
-    }
-    return;
-}
-
-void print_list(Node *head) {
-    while (head != NULL) {
-        printf("%d ", head->data);
-        head = head->next;
-    }
-    printf("\n");
+Node * create_node(int value){
+    Node * new_node = (Node*)malloc(sizeof(Node));
+    new_node->value = value;
+    new_node->next = NULL;
+    
+    return new_node;
 }
 
 int main() {
-    char str[max_size];
-    printf("enter the linked list in space separated string format: ");
-    fgets(str, max_size, stdin);
-    str[strcspn(str, "\n")] = '\0';
-
-    int k;
-    printf("enter K : ");
-    scanf("%d", &k);
-
-    char *delim = " ";
-    char *token = strtok(str, delim);
-    Node *head = NULL;
-
-    while (token != NULL) {
-        add_to_ll(&head, atoi(token));
-        token = strtok(NULL, delim);
+    int N, K;
+    printf("enter the no of ops & size of window: ");
+    scanf("%d %d", &N, &K);
+    
+    Node * head = NULL;
+    Node * tail = NULL;
+    int size = 0;
+    int sum =0;
+    
+    for(int i =0; i<N; i++){
+        char op;
+        printf("enter the operation : ");
+        scanf(" %c", &op);
+        
+        if(op == 'A'){
+            int X;
+            scanf("%d", &X);
+            Node * new_node = create_node(X);
+            if(tail == NULL){
+                head = tail = new_node;
+            }
+            else{
+                tail->next = new_node;
+                tail = new_node;
+            }
+            
+            sum += X;
+            size ++;
+            
+            if(size > K){
+                Node * temp = head;
+                head = head->next;
+                sum -= temp->value;
+                free(temp);
+                size --;
+            }
+        }
+        else if(op == 'S'){
+            printf("the sum is %d\n", sum);
+        }
     }
-
-    head = k_alt_rev(head, k);
-
-    print_list(head);
+    while(head!=NULL){
+        Node * temp = head;
+        head = head->next;
+        free(temp);
+    }
 
     return 0;
 }
