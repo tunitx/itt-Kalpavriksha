@@ -1,220 +1,92 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-typedef struct Node{
+#define max_size 100000
+
+typedef struct Node {
     int data;
-    struct Node* next;
-}Node;
+    struct Node *next;
+} Node;
 
-Node* createNode(int data){
-    Node* newNode=(Node*)malloc(sizeof(Node));
-    if(!newNode){
-        printf("Memory Allocation Failed\n");
-        exit(1);
+Node *kAltReverse(Node *head, int k) {
+    Node *curr = head;
+    Node *next = NULL;
+    Node *prev = NULL;
+    int count = 0;
+
+    while (curr != NULL && count < k) {
+        next = curr->next;
+        curr->next = prev;
+        prev = curr;
+        curr = next;
+        count++;
     }
-    newNode->data=data;
-    newNode->next=NULL;
-    return newNode;
+
+    if (head != NULL) {
+        head->next = curr;
+    }
+
+    count = 0;
+    while (count < k - 1 && curr != NULL) {
+        curr = curr->next;
+        count++;
+    }
+
+    if (curr != NULL) {
+        curr->next = kAltReverse(curr->next, k);
+    }
+
+    return prev;
 }
 
-void addAtEnd(Node** head,int key){
-    Node* newNode=createNode(key);
-    if(*head==NULL){
-        *head=newNode;
-        return;
+void add_to_ll(Node **head, int data) {
+    Node *curr_node = (Node *)malloc(sizeof(Node));
+    curr_node->data = data;
+    curr_node->next = NULL;
+
+    if (*head == NULL) {
+        *head = curr_node;
+    } else {
+        Node *temp = *head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = curr_node;
     }
-    Node*curr=*head;
-    while(curr->next!=NULL){
-        curr=curr->next;
-    }
-    curr->next=newNode;
+    return;
 }
 
-void addAtbeginning(Node** head,int data){
-    Node* newNode=createNode(data);
-    newNode->next=*head;
-    *head=newNode;
-}
-void addAtGivenPosition(Node** head,int pos,int data){
-    if(pos<=0){
-        printf("Invalid Position\n");
-        return;
-    }
-    Node *newNode=createNode(data);
-    if(pos==1){
-        newNode->next=*head;
-        *head=newNode;
-        return;
-    }
-    Node* curr=*head;
-    int i=1;
-    while(curr!=NULL && i<pos-1){
-        curr=curr->next;
-        i++;
-    }
-    if(curr==NULL){
-        printf("Invalid Position");
-        free(newNode);
-        return;
-    }
-    newNode->next=curr->next;
-    curr->next=newNode;
-}
-
-void updateAtGivenPosition(Node** head,int pos,int data){
-    if(pos<=0){
-        printf("Invalid Position\n");
-        return;
-    }
-    Node* curr=*head;
-    int i=0;
-    while(curr!=NULL && i<pos-1){
-        curr=curr->next;
-        i++;
-    }
-    if(curr==NULL){
-        printf("Invalid Position");
-        return;
-    }
-    curr->data=data;
-}
-
-void deleteFirst(Node** head){
-    if(*head==NULL){
-        return;
-    }
-    Node* temp=*head;
-    *head=(*head)->next;
-    free(temp);
-}
-
-void deleteLast(Node** head){
-    if(*head==NULL) {
-        return;
-    }
-    if((*head)->next==NULL){
-        free(*head);
-        *head = NULL;
-        return;
-    }
-    Node* temp=*head;
-    Node* prev=NULL;
-    while(temp->next != NULL) {
-        prev=temp;
-        temp=temp->next;
-    }
-    prev->next=NULL;
-    free(temp);
-}
-
-void deleteAtGivenPosition(Node** head,int pos){
-    if(*head==NULL){
-        return;
-    }
-    if(pos<1){
-        return;
-    }
-    if(pos==1){
-        Node* temp=*head;
-        *head=(*head)->next;
-        free(temp);
-        return;
-    }
-
-    Node* temp=*head;
-    Node* prev=NULL;
-    int i=1;
-
-    while(temp!=NULL && i<pos){
-        prev=temp;
-        temp=temp->next;
-        i++;
-    }
-    if(temp==NULL){
-        return;
-    }
-    prev->next=temp->next;
-    free(temp);
-}
-
-void printList(Node **head){
-    Node *curr = *head;
-    while(curr!=NULL){
-        printf("%d ",curr->data);
-        curr=curr->next;
+void print_list(Node *head) {
+    while (head != NULL) {
+        printf("%d ", head->data);
+        head = head->next;
     }
     printf("\n");
 }
 
-int main(){
-    Node* head=NULL;
-    int noOfOperations;
-    scanf("%d",&noOfOperations);
+int main() {
+    char str[max_size];
+    printf("enter the linked list in space separated string format: ");
+    fgets(str, max_size, stdin);
+    str[strcspn(str, "\n")] = '\0';
 
-    while(noOfOperations>0){
-        int choice;
-        scanf("%d",&choice);
-        switch(choice){
-            case 1:{
-                int key;
-                scanf("%d",&key);
-                addAtEnd(&head,key);
-                printList(&head);
-                break;
-            }
-            case 2:{
-                int key;
-                scanf("%d",&key);
-                addAtbeginning(&head,key);
-                printList(&head);
-                break;
-            }
-            case 3:{
-                int key;
-                int pos;
-                scanf("%d",&pos);
-                scanf("%d",&key);
-                addAtGivenPosition(&head,pos,key);
-                printList(&head);
-                break;
-            }
-            case 4:{
-                printList(&head);
-                break;
-            }
-            case 5:{
-                int key;
-                int pos;
-                scanf("%d",&pos);
-                scanf("%d",&key);
-                updateAtGivenPosition(&head,pos,key);
-                printList(&head);
-                break;
-            }
-            case 6:{
-                deleteFirst(&head);
-                printList(&head);
-                break;
-            }
-            case 7:{
-                deleteLast(&head);
-                printList(&head);
-                break;
-            }
-            case 8:{
-                int pos;
-                scanf("%d",&pos);
-                deleteAtGivenPosition(&head,pos);
-                printList(&head);
-                break;
-            }
-            default:{
-                printf("Please choose between 1 to 8\n");
-                break;
-            }
-        }
-        noOfOperations--;
+    int k;
+    printf("enter K : ");
+    scanf("%d", &k);
+
+    char *delim = " ";
+    char *token = strtok(str, delim);
+    Node *head = NULL;
+
+    while (token != NULL) {
+        add_to_ll(&head, atoi(token));
+        token = strtok(NULL, delim);
     }
+
+    head = kAltReverse(head, k);
+
+    print_list(head);
 
     return 0;
 }
