@@ -9,7 +9,7 @@ typedef struct Node {
     struct Node *next;
 } Node;
 
-Node *kAltReverse(Node *head, int k) {
+Node *k_alt_rev(Node *head, int k) {
     Node *curr = head;
     Node *next = NULL;
     Node *prev = NULL;
@@ -34,7 +34,7 @@ Node *kAltReverse(Node *head, int k) {
     }
 
     if (curr != NULL) {
-        curr->next = kAltReverse(curr->next, k);
+        curr->next = k_alt_rev(curr->next, k);
     }
 
     return prev;
@@ -84,7 +84,7 @@ int main() {
         token = strtok(NULL, delim);
     }
 
-    head = kAltReverse(head, k);
+    head = k_alt_rev(head, k);
 
     print_list(head);
 
