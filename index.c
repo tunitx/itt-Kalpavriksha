@@ -1,200 +1,134 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
+typedef struct patient {
+    int patient_id;
+    char severity[10];
+    struct patient* next;
+} patient;
 
-//? changed the max to maxLength.
-
-#define maxLength 300
-
-//? improved naming of operator stack, number stack, their push & pop operations & their tops.
-
-char operatorStack[maxLength];
-int operatorStackTop = -1;
-
-int numberStack[maxLength];
-int numStackTop = -1;
-
-void pushOperator(char op) {
-    operatorStack[++operatorStackTop] = op;
+patient* create_patient(int id, char* severity) {
+    patient* new_patient = (patient*)malloc(sizeof(patient));
+    new_patient->patient_id = id;
+    strcpy(new_patient->severity, severity);
+    new_patient->next = NULL;
+    return new_patient;
 }
 
-char popOperator() {
-    return operatorStack[operatorStackTop--];
-}
-
-void pushNumber(int val) {
-    numberStack[++numStackTop] = val;
-}
-
-int popNumber() {
-    return numberStack[numStackTop--];
-}
-
-//? changed the multiple return statements to single ternary op based condition
-
-int getOperatorPrecedence(char op) {
- return (op == '+' || op == '-') ? 1 : (op == '*' || op == '/') ? 2 : 0;
-}
-
-int isMathOperator(char ch) {
-    return (ch == '+' || ch == '-' || ch == '*' || ch == '/');
-}
-
-int convertToPostfix(char infix[], char postfix[]) {
-    int index = 0, postIndex = 0;
-    int expectNum = 1;
-
-    while (infix[index] != '\0') {
-        if (infix[index] == ' ') {
-            index++;
-            continue;
-        }
-
-        if (isdigit(infix[index]) || (infix[index] == '-' && isdigit(infix[index + 1]) && expectNum)) {
-            if (!expectNum) return -1;
-
-            int sign = 1;
-            if (infix[index] == '-') {
-                sign = -1;
-                index++;
-            }
-
-            int value = 0;
-            while (isdigit(infix[index])) {
-                value = value * 10 + (infix[index++] - '0');
-            }
-            value *= sign;
-
-            if (value < 0) {
-                postfix[postIndex++] = '-';
-                value = -value;
-            }
-
-            char temp[20];
-            int len = 0;
-            do {
-                temp[len++] = (value % 10) + '0';
-                value /= 10;
-            } while (value > 0);
-
-            for (int k = len - 1; k >= 0; k--) {
-                postfix[postIndex++] = temp[k];
-            }
-            postfix[postIndex++] = ' ';
-
-            expectNum = 0;
-        } else if (isMathOperator(infix[index])) {
-            if (expectNum) return -1;
-
-            while (operatorStackTop != -1 && getOperatorPrecedence(operatorStack[operatorStackTop]) >= getOperatorPrecedence(infix[index])) {
-                postfix[postIndex++] = popOperator();
-                postfix[postIndex++] = ' ';
-            }
-
-            pushOperator(infix[index]);
-            index++;
-            expectNum = 1;
-        } else {
-            return -1;
-        }
+void insert_patient(patient** head, int id, char* severity) {
+    patient* new_patient = create_patient(id, severity);
+    if (*head == NULL) {
+        *head = new_patient;
+        return;
     }
-
-    if (expectNum) return -1;
-
-    while (operatorStackTop != -1) {
-        postfix[postIndex++] = popOperator();
-        postfix[postIndex++] = ' ';
+    patient* temp = *head;
+    while (temp->next != NULL) {
+        temp = temp->next;
     }
-    postfix[postIndex] = '\0';
-    return 0;
+    temp->next = new_patient;
 }
 
-int calculatePostfix(char postfix[], int *hasError) {
-    int index = 0;
+int get_severity_priority(char* severity) {
+    if (strcmp(severity, "Critical") == 0) return 1;
+    if (strcmp(severity, "Serious") == 0) return 2;
+    return 3;
+}
 
-    while (postfix[index] != '\0') {
-        if (isdigit(postfix[index]) || (postfix[index] == '-' && isdigit(postfix[index + 1]))) {
-            int value = 0, sign = 1;
-
-            if (postfix[index] == '-') {
-                sign = -1;
-                index++;
+void sort_patients(patient** head) {
+    if (*head == NULL || (*head)->next == NULL) return;
+    int swapped;
+    patient *ptr1, *lptr = NULL;
+    do {
+        swapped = 0;
+        ptr1 = *head;
+        while (ptr1->next != lptr) {
+            if (get_severity_priority(ptr1->severity) > get_severity_priority(ptr1->next->severity)) {
+                int temp_id = ptr1->patient_id;
+                char temp_severity[10];
+                strcpy(temp_severity, ptr1->severity);
+                ptr1->patient_id = ptr1->next->patient_id;
+                strcpy(ptr1->severity, ptr1->next->severity);
+                ptr1->next->patient_id = temp_id;
+                strcpy(ptr1->next->severity, temp_severity);
+                swapped = 1;
             }
-
-            while (isdigit(postfix[index])) {
-                value = value * 10 + (postfix[index++] - '0');
-            }
-            pushNumber(sign * value);
-        } else if (isMathOperator(postfix[index])) {
-            if (numStackTop < 1) {
-                *hasError = 1;
-                return 0;
-            }
-
-            int right = popNumber();
-            int left = popNumber();
-
-            if (postfix[index] == '/' && right == 0) {
-                *hasError = 2;
-                return 0;
-            }
-
-            switch (postfix[index]) {
-                case '+': pushNumber(left + right); break;
-                case '-': pushNumber(left - right); break;
-                case '*': pushNumber(left * right); break;
-                case '/': pushNumber(left / right); break;
-            }
-            index++;
-        } else {
-            index++;
+            ptr1 = ptr1->next;
         }
-    }
+        lptr = ptr1;
+    } while (swapped);
+}
 
-    return popNumber();
+void print_patients(patient* head) {
+    while (head != NULL) {
+        printf("%d %s\n", head->patient_id, head->severity);
+        head = head->next;
+    }
+}
+
+int is_valid_number(char* str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!isdigit(str[i])) return 0;
+    }
+    return 1;
+}
+
+int is_valid_severity(char* str) {
+    return strcmp(str, "Critical") == 0 || strcmp(str, "Serious") == 0 || strcmp(str, "Stable") == 0;
+}
+
+int is_unique_id(patient* head, int id) {
+    while (head != NULL) {
+        if (head->patient_id == id) return 0;
+        head = head->next;
+    }
+    return 1;
 }
 
 int main() {
-    char input[maxLength];
-    char output[maxLength];
+    int n;
+    char input[100];
 
-    printf("Enter an expression: ");
-    if (fgets(input, maxLength, stdin)) {
-        input[strcspn(input, "\n")] = '\0';
-    }
-
-    int isEmpty = 1;
-    for (int i = 0; input[i] != '\0'; i++) {
-        if (input[i] != ' ') {
-            isEmpty = 0;
+    while (1) {
+        printf("enter number of patients: ");
+        scanf("%s", input);
+        if (is_valid_number(input)) {
+            n = atoi(input);
             break;
         }
+        printf("invalid input. Please enter a valid integer.\n");
     }
 
-    if (isEmpty) {
-        printf("Error: Expression cannot be blank\n");
-        return 0;
+    patient* head = NULL;
+    for (int i = 0; i < n; i++) {
+        int id;
+        char severity[10];
+
+        while (1) {
+            printf("enter unique patient ID: ");
+            scanf("%s", input);
+            if (is_valid_number(input)) {
+                id = atoi(input);
+                if (is_unique_id(head, id)) break;
+                printf("patient ID already exists. Enter a unique ID.\n");
+            } else {
+                printf("invalid ID. Please enter a valid integer.\n");
+            }
+        }
+
+        while (1) {
+            printf("enter severity (Critical/Serious/Stable): ");
+            scanf("%s", severity);
+            if (is_valid_severity(severity)) break;
+            printf("invalid severity. Enter 'Critical', 'Serious', or 'Stable'.\n");
+        }
+
+        insert_patient(&head, id, severity);
     }
 
-    int status = convertToPostfix(input, output);
-    if (status == -1) {
-        printf("Error: Invalid expression\n");
-        return 0;
-    }
-
-    //? removed postfix exp printing line
-
-    int errorFlag = 0;
-    int result = calculatePostfix(output, &errorFlag);
-
-    if (errorFlag == 1) {
-        printf("Error: Invalid postfix expression\n");
-    } else if (errorFlag == 2) {
-        printf("Error: Division by zero\n");
-    } else {
-        printf("Result: %d\n", result);
-    }
+    sort_patients(&head);
+    print_patients(head);
 
     return 0;
 }
