@@ -77,7 +77,7 @@ Node *reverse(Node *head, Node *prev)
     return reverse(temp, head);
 }
 
-Node *printList(Node *head)
+void printList(Node *head)
 {
     while (head != NULL)
     {
