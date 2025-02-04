@@ -42,7 +42,7 @@ void splitInTwoHalfs(Node * head, Node ** h1, Node ** h2){
     *h1 = head;
     slow->next = head;
 
-     temp = h2;
+    temp = h2;
     while(temp->next!=NULL)
         temp = temp->next;
     temp->next = h2;
