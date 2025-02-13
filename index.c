@@ -1,200 +1,102 @@
 #include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#include <stdlib.h>
+#define max_size 100001
 
+typedef struct Node {
+    char c;
+    struct Node * next;
+} Node;
 
-//? changed the max to maxLength.
+Node * createNode(char c){
+    Node * newNode = (Node *)malloc(sizeof(Node));
+    newNode->next = NULL;
+    newNode->c = c;
 
-#define maxLength 300
-
-//? improved naming of operator stack, number stack, their push & pop operations & their tops.
-
-char operatorStack[maxLength];
-int operatorStackTop = -1;
-
-int numberStack[maxLength];
-int numStackTop = -1;
-
-void pushOperator(char op) {
-    operatorStack[++operatorStackTop] = op;
+    return newNode;
 }
 
-char popOperator() {
-    return operatorStack[operatorStackTop--];
+typedef struct Queue{
+    Node * front;
+    Node * rear;
+    int size;
+} Queue;
+
+Queue * createQueue(){
+    Queue * q = (Queue*)malloc(sizeof(Queue));
+    q->front = NULL;
+    q->rear = NULL;
+    q->size = 0;
+
+    return q;
 }
 
-void pushNumber(int val) {
-    numberStack[++numStackTop] = val;
-}
-
-int popNumber() {
-    return numberStack[numStackTop--];
-}
-
-//? changed the multiple return statements to single ternary op based condition
-
-int getOperatorPrecedence(char op) {
- return (op == '+' || op == '-') ? 1 : (op == '*' || op == '/') ? 2 : 0;
-}
-
-int isMathOperator(char ch) {
-    return (ch == '+' || ch == '-' || ch == '*' || ch == '/');
-}
-
-int convertToPostfix(char infix[], char postfix[]) {
-    int index = 0, postIndex = 0;
-    int expectNum = 1;
-
-    while (infix[index] != '\0') {
-        if (infix[index] == ' ') {
-            index++;
-            continue;
-        }
-
-        if (isdigit(infix[index]) || (infix[index] == '-' && isdigit(infix[index + 1]) && expectNum)) {
-            if (!expectNum) return -1;
-
-            int sign = 1;
-            if (infix[index] == '-') {
-                sign = -1;
-                index++;
-            }
-
-            int value = 0;
-            while (isdigit(infix[index])) {
-                value = value * 10 + (infix[index++] - '0');
-            }
-            value *= sign;
-
-            if (value < 0) {
-                postfix[postIndex++] = '-';
-                value = -value;
-            }
-
-            char temp[20];
-            int len = 0;
-            do {
-                temp[len++] = (value % 10) + '0';
-                value /= 10;
-            } while (value > 0);
-
-            for (int k = len - 1; k >= 0; k--) {
-                postfix[postIndex++] = temp[k];
-            }
-            postfix[postIndex++] = ' ';
-
-            expectNum = 0;
-        } else if (isMathOperator(infix[index])) {
-            if (expectNum) return -1;
-
-            while (operatorStackTop != -1 && getOperatorPrecedence(operatorStack[operatorStackTop]) >= getOperatorPrecedence(infix[index])) {
-                postfix[postIndex++] = popOperator();
-                postfix[postIndex++] = ' ';
-            }
-
-            pushOperator(infix[index]);
-            index++;
-            expectNum = 1;
-        } else {
-            return -1;
-        }
+void enqueue(Queue* q, char c){
+    Node * newNode = createNode(c);
+    if(q->front == NULL){
+        q->front = newNode;
+        q->rear = newNode;
+        return;
     }
+    q->rear->next = newNode;
+    q->rear = newNode;
+    q->size ++;
 
-    if (expectNum) return -1;
+    return;
+}
 
-    while (operatorStackTop != -1) {
-        postfix[postIndex++] = popOperator();
-        postfix[postIndex++] = ' ';
+Node * dequeue(Queue * q){
+    if(q->front == NULL) return NULL;
+    Node * delNode = q->front;
+    q->front = q->front->next;
+    if(q->front == NULL){
+        q->rear = NULL;
     }
-    postfix[postIndex] = '\0';
+    q->size --;
+
+    return delNode;
+}
+
+int isEmpty(Queue * q){
+    if(q->front == NULL) return 1;
     return 0;
 }
 
-int calculatePostfix(char postfix[], int *hasError) {
-    int index = 0;
-
-    while (postfix[index] != '\0') {
-        if (isdigit(postfix[index]) || (postfix[index] == '-' && isdigit(postfix[index + 1]))) {
-            int value = 0, sign = 1;
-
-            if (postfix[index] == '-') {
-                sign = -1;
-                index++;
-            }
-
-            while (isdigit(postfix[index])) {
-                value = value * 10 + (postfix[index++] - '0');
-            }
-            pushNumber(sign * value);
-        } else if (isMathOperator(postfix[index])) {
-            if (numStackTop < 1) {
-                *hasError = 1;
-                return 0;
-            }
-
-            int right = popNumber();
-            int left = popNumber();
-
-            if (postfix[index] == '/' && right == 0) {
-                *hasError = 2;
-                return 0;
-            }
-
-            switch (postfix[index]) {
-                case '+': pushNumber(left + right); break;
-                case '-': pushNumber(left - right); break;
-                case '*': pushNumber(left * right); break;
-                case '/': pushNumber(left / right); break;
-            }
-            index++;
-        } else {
-            index++;
-        }
-    }
-
-    return popNumber();
+Node * peek(Queue * q){
+    if(q->front == NULL) return NULL;
+    return q->front;
 }
 
-int main() {
-    char input[maxLength];
-    char output[maxLength];
+int main(){
 
-    printf("Enter an expression: ");
-    if (fgets(input, maxLength, stdin)) {
-        input[strcspn(input, "\n")] = '\0';
-    }
+    char input[max_size];
+    scanf("%s", input);
 
-    int isEmpty = 1;
-    for (int i = 0; input[i] != '\0'; i++) {
-        if (input[i] != ' ') {
-            isEmpty = 0;
-            break;
+    char output[max_size];
+    int map[26] = {0};
+
+
+    Queue * q = createQueue();
+
+    int k =0;
+    for(int i =0; input[i]!='\0'; i++){
+        map[input[i] - 'a'] ++;
+        if(map[input[i] - 'a'] >1){
+           Node * delNode = dequeue(q);
+           free(delNode);
         }
+        else{
+            enqueue(q, input[i]);
+        }
+
+        Node * peekNode = peek(q);
+        if(peekNode == NULL){
+            output[k++] = '-';
+            output[k++] = '1';
+        } 
+        else output[k++] = peekNode->c;
+
     }
+    output[k++] = '\0';
 
-    if (isEmpty) {
-        printf("Error: Expression cannot be blank\n");
-        return 0;
-    }
-
-    int status = convertToPostfix(input, output);
-    if (status == -1) {
-        printf("Error: Invalid expression\n");
-        return 0;
-    }
-
-    //? removed postfix exp printing line
-
-    int errorFlag = 0;
-    int result = calculatePostfix(output, &errorFlag);
-
-    if (errorFlag == 1) {
-        printf("Error: Invalid postfix expression\n");
-    } else if (errorFlag == 2) {
-        printf("Error: Division by zero\n");
-    } else {
-        printf("Result: %d\n", result);
-    }
-
-    return 0;
+    printf("%s\n", output);
 }
