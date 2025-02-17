@@ -114,14 +114,26 @@ int main()
         if (strcmp(currToken, "TURN_ON") == 0)
         {
             char *room = strtok(NULL, " ");
-            put(hm, room);
-            printf("The room %s light has been turned on.\n", room);
+            if(!get(hm, room)){
+                put(hm, room);
+                printf("The room %s light has been turned on.\n", room);
+            }
+            else{
+                printf("The room %s light is already on.\n", room);
+            }
+            
         }
         else if (strcmp(currToken, "TURN_OFF") == 0)
         {
             char *room = strtok(NULL, " ");
-            delete(hm, room);
-            printf("The room %s light has been turned off.\n", room);
+            if(get(hm, room)){
+                delete(hm, room);
+                printf("The room %s light has been turned off.\n", room);
+            }
+            else{
+                printf("The room %s light is already off.\n", room);
+            }
+           
         }
         else
         {
